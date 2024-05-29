@@ -1,0 +1,120 @@
+﻿@model SaleFishClean.Domains.Entities.Product
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>Product</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="BrandId" class="control-label"></label>
+                <select asp-for="BrandId" class ="form-control" asp-items="ViewBag.BrandId"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="ProductTypeId" class="control-label"></label>
+                <select asp-for="ProductTypeId" class ="form-control" asp-items="ViewBag.ProductTypeId"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="DiscountId" class="control-label"></label>
+                <select asp-for="DiscountId" class ="form-control" asp-items="ViewBag.DiscountId"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="ProductName" class="control-label"></label>
+                <input asp-for="ProductName" class="form-control" />
+                <span asp-validation-for="ProductName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Description" class="control-label"></label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Price" class="control-label"></label>
+                <input asp-for="Price" class="form-control" />
+                <span asp-validation-for="Price" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Weight" class="control-label"></label>
+                <input asp-for="Weight" class="form-control" />
+                <span asp-validation-for="Weight" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Manufacturer" class="control-label"></label>
+                <input asp-for="Manufacturer" class="form-control" />
+                <span asp-validation-for="Manufacturer" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Color" class="control-label"></label>
+                <input asp-for="Color" class="form-control" />
+                <span asp-validation-for="Color" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Unit" class="control-label"></label>
+                <input asp-for="Unit" class="form-control" />
+                <span asp-validation-for="Unit" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Quantity" class="control-label"></label>
+                <input asp-for="Quantity" class="form-control" />
+                <span asp-validation-for="Quantity" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="HasSpecialFeatures" class="control-label"></label>
+                <input asp-for="HasSpecialFeatures" class="form-control" />
+                <span asp-validation-for="HasSpecialFeatures" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="IsNew" class="control-label"></label>
+                <input asp-for="IsNew" class="form-control" />
+                <span asp-validation-for="IsNew" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="IsBestseller" class="control-label"></label>
+                <input asp-for="IsBestseller" class="form-control" />
+                <span asp-validation-for="IsBestseller" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="IsOnSale" class="control-label"></label>
+                <input asp-for="IsOnSale" class="form-control" />
+                <span asp-validation-for="IsOnSale" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="SpecialNote" class="control-label"></label>
+                <input asp-for="SpecialNote" class="form-control" />
+                <span asp-validation-for="SpecialNote" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ProductImage" class="control-label"></label>
+                <input asp-for="ProductImage" class="form-control" />
+                <span asp-validation-for="ProductImage" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="SupplierId" class="control-label"></label>
+                <input asp-for="SupplierId" class="form-control" />
+                <span asp-validation-for="SupplierId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ImageFile" class="control-label"></label>
+                <input type="file" asp-for="ImageFile" class="form-control" />
+                <span asp-validation-for="ImageFile" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

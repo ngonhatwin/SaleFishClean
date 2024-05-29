@@ -1,0 +1,452 @@
+﻿@model SaleFishClean.Application.Common.Models.Dtos.Response.ProductDetailsResponse
+@{
+    Layout = null;
+    var httpContext = ViewContext.HttpContext;
+    string isLoggedIn = httpContext.Session.GetString("IsLoggedIn");
+}
+<header id="headerabc" data-isCount="@ViewData["Count"]" data-isUserid="@ViewData["userId"]" data-isUserName="@ViewData["userName"]">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet">
+    <style>
+        #quantityInput {
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        th {
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        th:hover {
+            background-color: cornflowerblue; /* Thay đổi màu nền khi hover */
+        }
+
+        .vertical-td-container {
+            display: flex;
+            flex-direction: column;
+        }
+        #commentInput{
+            border-radius: 10px;
+            width: 600px;
+            height: 50px;
+        }
+
+        #sendCommentButton{
+            border-radius: 5px;
+            margin-left: 20px;
+        }
+
+        .comment {
+            height: 50px;
+            background-color: #F0F2F5;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+            .comment .userId {
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+
+            .comment .content {
+                margin: 0;
+            }
+    </style>
+</header>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="column">
+            <img src="@Model.ProductImage" alt="Ảnh sản phẩm" class="img-fluid mx-auto d-block">
+        </div>
+    </div>
+    <div class="row justify-content-center">
+        <div class="column text-center">
+            <h4>@Model.ProductName</h4>
+            <p><strong>Xuất xứ:</strong> @Model.Manufacturer</p>
+            <p><strong>Còn trong kho:</strong> @Model.Quantity</p>
+            <p><strong>Giá:</strong> @Model.Price</p>
+            <form>
+                <input type="hidden" name="productId" value="@Model.ProductId" />
+                <input id="quantityInput" type="number" name="quantity" value="1" min="1" />
+                <button onclick="addToCart(@Model.ProductId); return false;" @* asp-action="AddToCart" asp-controller="WebApp" *@ type="submit" class="btn-primary" name="ProductId" value="@Model.ProductId" style="border-radius: 10px;">Thêm vào giỏ hàng</button>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="row justify-content-center mt-4" style="width: 100%;">
+    <div class="column">
+        <table class="table table-bordered table-striped table-hover">
+            <thead>
+                <tr>
+                    <th scope="col" onclick="showContent('info')">Thông tin sản phẩm</th>
+                    <th scope="col" onclick="showContent('comment')">Bình luận và đánh giá sản phẩm</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr id="info" style="display: none;">
+                    <td colspan="3">@Model.Description</td>
+                </tr>
+                <tr id="comment" style="display: none;" data-isLoggedIn="@isLoggedIn">
+                    <td colspan="2">
+                        <div class="vertical-td-container">
+                            <div id="commentContent" class="content">
+                                <!-- Nội dung bình luận -->
+                            </div>
+                            @if (isLoggedIn == "true")
+                            {
+                                <div>
+                                    <form>
+                                        <input type="text" id="commentInput" placeholder="Nhập bình luận...">
+                                        <button id="sendCommentButton" class="btn btn-primary">Gửi</button>
+                                        @* <button type="button" onclick="DeleteComment()" class="btn btn-primary">Xóa</button> *@
+                                    </form>
+                                </div>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@* script bình luận *@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/3.1.18/signalr.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Khởi tạo kết nối SignalR
+        var connection = new signalR.HubConnectionBuilder().withUrl("/commentHub").build();
+
+        // Nhận thông báo bình luận
+        // connection.on("ReceiveComment", function (content) {
+        //     toastr.success("Có bình luận mới: " + content);
+        //     addCommentToDiv(content);
+        // });
+
+        connection.start().catch(function (err) {
+            return console.error(err.toString());
+        });
+
+        function addCommentToDiv(comment) {
+            var commentContentDiv = document.getElementById('commentContent');
+
+            var commentParts = comment.split(':'); // Tách thông tin người dùng và nội dung bình luận
+            var userId = commentParts[0].trim();
+            var content = commentParts.slice(1).join(':').trim(); // Nối lại nội dung bình luận nếu có dấu ':' trong nội dung
+
+            var commentElement = document.createElement('div');
+            commentElement.className = 'comment';
+
+            var userIdElement = document.createElement('div');
+            userIdElement.className = 'userId';
+            userIdElement.textContent = userId;
+
+            var contentElement = document.createElement('p');
+            contentElement.className = 'content';
+            contentElement.textContent = content;
+
+            commentElement.appendChild(userIdElement);
+            commentElement.appendChild(contentElement);
+
+            commentContentDiv.appendChild(commentElement);
+        }
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+        var userIdend = document.getElementById("headerabc").getAttribute("data-isUserid");
+        var userNameend = document.getElementById("headerabc").getAttribute("data-isUserName");
+        // Thêm bình luận
+        $('#sendCommentButton').on('click', function (e) {
+            e.preventDefault();
+            debugger;
+            var productId = @Model.ProductId;
+            var name = getCookie("userName") ?? userNameend;
+            var content = $('#commentInput').val();
+            var commentToSend = name + ': ' + content;
+            var userId = getCookie("userId") ?? userIdend;
+            $.ajax({
+                url: '/add-comment',
+                type: 'POST',
+                data: {
+                    userId: userId, // Giả sử orderId là userId
+                    content: content,
+                    id: productId
+                },
+                success: function (response) {
+                    toastr.success('Bình luận đã được thêm thành công!');
+                    $('#commentInput').val(''); // Xóa nội dung trong textarea
+                    addCommentToDiv(commentToSend);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    toastr.error('Đã xảy ra lỗi khi thêm bình luận!');
+                }
+            });
+        });
+    });
+</script>
+@* ------------------------- *@
+
+<script>
+    // JavaScript
+    function showComments() {
+        var productId = @Model.ProductId; // Lấy productId từ mô hình Razor (hoặc bất kỳ cách nào khác phù hợp)
+        getComments(productId);
+    }
+
+    function getComments(productId) {
+        $.ajax({
+            url: '/get-comment',
+            type: 'GET',
+            data: { productId: productId },
+            success: function (response) {
+                displayComments(response);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                toastr.error('Đã xảy ra lỗi khi lấy bình luận!');
+            }
+        });
+    }
+
+    function displayComments(comments) {
+        var commentContentDiv = document.getElementById('commentContent');
+        commentContentDiv.innerHTML = ''; // Xóa bình luận cũ trước khi hiển thị mới
+        comments.forEach(function (comment) {
+            var commentParts = comment.split(':'); // Tách thông tin người dùng và nội dung bình luận
+            var userId = commentParts[0].trim();
+            var content = commentParts.slice(1).join(':').trim(); // Nối lại nội dung bình luận nếu có dấu ':' trong nội dung
+
+            var commentElement = document.createElement('div');
+            commentElement.className = 'comment';
+
+            var userIdElement = document.createElement('div');
+            userIdElement.className = 'userId';
+            userIdElement.textContent = userId;
+
+            var contentElement = document.createElement('p');
+            contentElement.className = 'content';
+            contentElement.textContent = content;
+
+            commentElement.appendChild(userIdElement);
+            commentElement.appendChild(contentElement);
+
+            commentContentDiv.appendChild(commentElement);
+        });
+    }
+
+</script>
+
+
+
+
+
+
+
+<div class="cart-icon">
+    <div class="cart-count">
+        <span id="cartItemCount">0</span>
+    </div>
+    <a asp-controller="WebApp" asp-action="GetToCart">
+        <img src="~/lib/shopping-cart.png" alt="search" />
+    </a>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+<script>
+    var cartItemCount = document.getElementById("headerabc").getAttribute("data-isCount");
+    document.getElementById("cartItemCount").innerText = cartItemCount;
+</script>
+<script>
+    function addToCart(productId, Quantity) {
+        debugger;
+        var quantity = document.getElementById("quantityInput").value;
+        $.ajax({
+            type: "POST",
+            url: "/add-to-cart",
+            data: { productId: productId, Quantity: quantity },
+            success: function (response) {
+                debugger;
+                // Cập nhật cartItemCount với số lượng sản phẩm trong giỏ hàng mới
+                var cartItemCount = response;
+                $("#cartItemCount").text(cartItemCount);
+                toastr.success('Đã thêm sản phẩm vào giỏ hàng');
+            },
+            error: function () {
+                debugger;
+                toastr.error('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng');
+            }
+        });
+    }
+</script>
+
+<script>
+    function showContent(sectionId) {
+        var comment = document.getElementById("comment");
+        var isLoggedIn = comment.getAttribute("data-isLoggedIn");
+        if (isLoggedIn !== "true") {
+            toastr.warning('Vui lòng đăng nhập để bình luận');
+        }
+        var sections = ["info", "comment"];
+        for (var i = 0; i < sections.length; i++) {
+            var section = document.getElementById(sections[i]);
+            if (sections[i] === sectionId) {
+                // Hiển thị phần tử nếu nó là phần tử được chọn
+                $(section).css("display", "table-row");
+                if (sectionId === 'comment') {
+                    // Nếu người dùng chọn xem phần bình luận, thì gọi hàm để lấy và hiển thị bình luận
+                    showComments();
+                }
+            } else {
+                // Ẩn phần tử nếu nó không được chọn
+                $(section).css("display", "none");
+            }
+        }
+        // Kiểm tra nếu người dùng chưa đăng nhập thì hiển thị toast
+        
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+        showContent('info');
+    });
+</script>
+@* <script>
+    function showContent(sectionId) {
+        var sections = ["info", "comment"];
+        if (isLoggedIn !== "true") {
+            toastr.warning('Vui lòng đăng nhập để xem bình luận');
+        }
+        for (var i = 0; i < sections.length; i++) {
+            var section = document.getElementById(sections[i]);
+            if (sections[i] === sectionId) {
+                // Hiển thị phần tử nếu nó là phần tử được chọn
+                $(section).css("display", "table-row");
+            } else {
+                // Ẩn phần tử nếu nó không được chọn
+                $(section).css("display", "none");
+            }
+        }
+    }
+    // Hiển thị mặc định phần thông tin sản phẩm
+    document.addEventListener("DOMContentLoaded", function () {
+        showContent('info');
+    });
+</script> *@
+
+<!-- Custom CSS -->
+<style>
+    #info, #comment {
+        display: none;
+        transition: all 0.3s ease;
+    }
+    .container {
+        margin: 0 auto;
+        padding: 20px;
+        max-width: 800px;
+    }
+
+    .row {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+
+    .column {
+        flex: 0 0 50%;
+        max-width: 50%;
+        text-align: center;
+    }
+
+    img.img-fluid {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .text-center h4 {
+        font-size: 1.5em;
+        margin-bottom: 10px;
+    }
+
+    .text-center p {
+        margin-bottom: 5px;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+    .table {
+        width: 100%;
+        margin-bottom: 1rem;
+        border-collapse: collapse;
+    }
+
+        .table th,
+        .table td {
+            padding: 0.75rem;
+            vertical-align: top;
+            border-top: 1px solid #dee2e6;
+            text-align: left;
+        }
+
+        .table thead th {
+            vertical-align: bottom;
+            border-bottom: 2px solid #dee2e6;
+            cursor: pointer;
+        }
+
+    .table-bordered {
+        border: 1px solid #dee2e6;
+    }
+
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.075);
+    }
+
+    .cart-icon {
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        background-color: red;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .cart-count {
+        height: 40px;
+        display: flex;
+        align-items: center;
+    }
+
+        .cart-count span {
+            color: black;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+    .cart-icon img {
+        width: 30px;
+        height: 30px;
+    }
+</style>

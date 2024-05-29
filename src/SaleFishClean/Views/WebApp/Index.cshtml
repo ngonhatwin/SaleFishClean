@@ -1,0 +1,813 @@
+﻿@using System.Globalization
+@model SaleFishClean.Application.Common.Models.Dtos.Response.IndexViewModelResponse
+@{
+    Layout = null;
+}
+@{
+    var httpContext = ViewContext.HttpContext;
+    string isLoggedIn = httpContext.Session.GetString("IsLoggedIn");
+    var userName = httpContext.Session.GetString("userName");
+    NumberFormatInfo nfi = new CultureInfo("vn-VN", false).NumberFormat;
+}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - FishSale</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/Trangchu.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/FishSale.styles.css" asp-append-version="true" />
+    <script src="~/js/signalr/signalr.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Toastr JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+
+    <style>
+        .chat-messages {
+            list-style-type: none; /* Loại bỏ dấu đầu dòng (bullet) */
+        }
+
+        .notificate {
+            cursor: pointer;
+            position: relative;
+        }
+
+        .notificate img {
+            display: block;
+        }
+
+        .containerdangnhapdangki{
+            width: 300px;
+        }
+
+        .dropdown-menu {
+            width: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .dropdown-item {
+            white-space: normal;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+        /* Tùy chỉnh Toastr để phù hợp với giao diện Bootstrap */
+        #toast-container > .toast-success {
+            background-color: #28a745; /* Màu nền thành công của Bootstrap */
+            color: #ffffff; /* Màu chữ mặc định của Bootstrap */
+        }
+
+        #toast-container > .toast-error {
+            background-color: #dc3545; /* Màu nền lỗi của Bootstrap */
+            color: #ffffff; /* Màu chữ mặc định của Bootstrap */
+        }
+
+        #toast-container > .toast-info {
+            background-color: #17a2b8; /* Màu nền thông tin của Bootstrap */
+            color: #ffffff; /* Màu chữ mặc định của Bootstrap */
+        }
+
+        #toast-container > .toast-warning {
+            background-color: #ffc107; /* Màu nền cảnh báo của Bootstrap */
+            color: #212529; /* Màu chữ mặc định của Bootstrap */
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 366.4px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .chat-header {
+            height: 47px;
+            padding: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .container-nguoichat {
+            flex: 1;
+             /* Thiết lập để có thể cuộn */
+            overflow-y: scroll !important;
+            padding: 0;
+            background-color: #f9f9f9;
+            flex-direction: column;
+            margin-bottom:63px;
+        }
+
+        .chat-message {
+            color: blue;
+            font-size: 16px;
+            margin: 5px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: white;
+        }
+
+        .input-buttonnhap {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+            height: 63px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            margin-left: 10px;
+            padding: 10px 20px;
+        }
+
+        #self-message {
+            background-color: #af00ff; /* Màu cho tin nhắn của bạn */
+            text-align: left; /* Canh phải cho tin nhắn của bạn */
+            color: white; /* Đổi màu chữ thành xanh dương */
+            font-size: 16px; /* Đặt kích thước chữ */
+            margin: 5px 0; /* Khoảng cách giữa các thẻ li */
+            padding: 10px; /* Đệm bên trong thẻ li */
+            border: 1px solid #ccc; /* Viền của thẻ li */
+            border-radius: 5px; /* Bo góc viền */
+            width: 200px;
+        }
+
+        #other-message {
+            background-color: lightpink; /* Màu cho tin nhắn của người khác */
+            text-align: left; /* Canh trái cho tin nhắn của người khác */
+            color: blue; /* Đổi màu chữ thành xanh dương */
+            font-size: 16px; /* Đặt kích thước chữ */
+            margin: 5px 0; /* Khoảng cách giữa các thẻ li */
+            padding: 10px; /* Đệm bên trong thẻ li */
+            border: 1px solid #ccc; /* Viền của thẻ li */
+            border-radius: 5px; /* Bo góc viền */
+            width: 200px;
+            float: right;
+        }
+
+    </style>
+    <script>
+        $(document).ready(function () {
+            // Kiểm tra xem có TempData["ResultOpt"] không
+            var resultOpt = '@TempData["ResultOpt"]';
+            if (resultOpt) {
+                // Hiển thị toast thông báo
+                toastr.success('Tạo tài khoản thành công');
+            }
+        });
+    </script>
+</head>
+<body>
+    <header class="position-fixed w-100 top-0" id="header" data-isCount="@ViewData["Count"]">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light border-bottom box-shadow mb-3 rounded-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="WebApp" asp-action="Index">Cửa hàng hải sản đông lạnh</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between ">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item" id="li">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="WebApp" asp-action="Index">Sản phẩm</a>
+                        </li>
+                        <li class="nav-item" id="li">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="WebApp" asp-action="Index">Về chúng tôi</a>
+                        </li>
+                        <li class="nav-item" id="li">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="WebApp" asp-action="Index">Tin tức</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="WebApp" asp-action="Index">Liên hệ</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="WebApp" asp-action="GetAllOrderTracking">Thông tin vận chuyển</a>
+                        </li>
+
+
+                    </ul>
+                    <form class="d-flex" id="searchForm" asp-controller="WebApp" asp-action="Search" style="margin-right:50px;">
+                        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" id="searchInput" name="name">
+                        <button class="btn btn-outline-primary" type="submit" id="searchButton">Search</button>
+                    </form>
+                </div>
+                <div class="containerdangnhapdangki">
+                    @if (isLoggedIn == "true")
+                    {
+                        <div class="container-dangxuat">
+                            <div class="avatar" onclick="showUserInfo()" style="margin-right: 50px; margin-top:8px;">
+                                @if (!string.IsNullOrEmpty(@Model.UserInfo.ImageName))
+                                {
+                                    <img id="ava-macdinh" src="@Model.UserInfo.ImageName" alt="Ava" style="width: 50px;">
+                                }
+                                else
+                                {
+                                    <img id="ava-macdinh" src="~/lib/user.png" alt="Ava" style="width: 50px;">
+                                }
+                            </div>
+                            <div class="notificate dropdown" onclick="showNotifications()" style="margin-right: 40px; margin-top:15px;">
+                                <img class="dropdown-toggle" data-toggle="dropdown" src="~/lib/notification.png" alt="Notifications" style="width: 30px;">
+                                <div class="dropdown-menu dropdown-menu-right">
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item" href="#">Xem tất cả</a>
+                                </div>
+                            </div>
+                            <div class="containerdangnhap" style="margin-top:8px;">
+                                <a id="logoutButton" class="btn btn-outline-dark" asp-controller="WebApp" asp-action="Logout">Đăng xuất</a>
+                            </div>
+                        </div>
+                        <div id="userInfoModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="userInfoModalLabel" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="userInfoModalLabel" style="margin-left: 20px;">Thông tin người dùng </h5>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="avatar-form" asp-action="AddInfoUser" asp-controller="User" enctype="multipart/form-data">
+                                            <div style="display:flex;">
+                                                <div class="form-group" style="max-width: 202px;">
+                                                    <label>Ảnh đại diện:</label>
+                                                    @if (!string.IsNullOrEmpty(@Model.UserInfo.ImageName))
+                                                    {
+                                                        <img id="avatar-preview" src="@Model.UserInfo.ImageName" alt="Avatar" style="display: block; width: 100px; height: auto;">
+                                                    }
+                                                    else
+                                                    {
+                                                        <img id="avatar-preview" src="~/lib/user.png" alt="Avatar" style="display: block; width: 100px; height: auto;">
+                                                    }
+
+                                                    <input type="file" id="avatar" name="ImageFile" asp-for="@Model.UserInfo.ImageFile" class="form-control">
+                                                </div>
+                                                <div style="margin-left: 10px;">
+                                                    <div class="form-group">
+                                                        <label for="firstName">Họ:</label>
+                                                        <input type="text" class="form-control" id="firstName" name="firstName" value="@Model.UserInfo.FirstName">
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="lastName">Tên:</label>
+                                                        <input type="text" class="form-control" id="lastName" name="lastName" value="@Model.UserInfo.LastName">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="user-info">
+                                                <div class="form-group">
+                                                    <label for="phoneNumber">Số điện thoại:</label>
+                                                    <input type="text" class="form-control" id="phoneNumber" name="phoneNumber" value="@Model.UserInfo.PhoneNumber">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="address">Địa chỉ:</label>
+                                                    <input type="text" class="form-control" id="phoneNumber" name="Address" value="@Model.UserInfo.Address">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="cccd">Số căn cước:</label>
+                                                    <input type="text" class="form-control" id="phoneNumber" name="Cccd" value="@Model.UserInfo.Cccd">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="email">Email:</label>
+                                                    <input type="text" class="form-control" id="email" name="Email" value="@Model.UserInfo.Email">
+                                                </div>
+                                                <button id="saveButton" type="submit" class="btn btn-primary">Save</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    }
+                    else
+                    {
+                        ViewData["Name"] = null;
+                        <div class="d-flex flex-row">
+                            <div class="containerdangnhap mb-2" style="margin-right: 10px;">
+                                <a asp-controller="WebApp" class="btn btn-outline-dark" asp-action="GoToLogin">Đăng nhập</a>
+                            </div>
+                            <div class="containerdangkí">
+                                <a asp-controller="WebApp" class="btn btn-outline-dark" asp-action="GoToRegister">Đăng kí</a>
+                            </div>
+                        </div>
+
+                    }
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container-panel">
+        <img class="img-banca" src="~/lib/banner.jpg" alt="Pannel" />
+    </div>
+    <div class="container-body">
+        <div class="title-danhsachsanpham">
+            @* <h2>Danh sách sản phẩm</h2> *@
+        </div>
+        <div class="container-body-sub">
+            <div class="container-navbar">
+                @Html.Partial("ProductTypesPartial")
+            </div>
+            <div class="container-product">
+
+                @if (Model != null && Model.Products.Any())
+                {
+                    <div class="row">
+                        @foreach (var product in Model.Products)
+                        {
+                            <div class="col-md-4" style="margin-bottom: 20px;">
+                                <div class="card mb-4 shadow-sm">
+                                    <img class="card-img-top" src="@product.ProductImage" alt="Product image" id="img">
+                                    <div class="card-body">
+                                        <h5 class="card-title">@product.ProductName</h5>
+                                        <p class="card-text">@product.Description</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="btn-group">
+
+                                                <a style="margin-right:10px; border-radius:8px;" asp-action="GoToProductDetails" asp-controller="WebApp" class="btn btn-sm btn-outline-secondary" asp-route-id="@product.ProductId">Chi tiết</a>
+                                                <form>
+                                                    <button onclick="addToCart(@product.ProductId, 1); return false;" @* asp-action="AddToCart" asp-controller="WebApp" *@ type="submit" class="btn btn-warning" name="ProductId" value="@product.ProductId">Thêm vào giỏ hàng</button>
+                                                </form>
+                                            </div>
+                                            <small class="text-muted">@product.Price.ToString("C", nfi)</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+
+                }
+                else
+                {
+                    <p>Không có sản phẩm nào được tìm thấy.</p>
+                }
+                <nav aria-label="Page navigation" style="margin-top: 10px;">
+                    <ul class="pagination">
+                        <li class="page-item @(Model.CurrentPage == 0 ? "disabled" : "")">
+                            <a class="page-link" asp-controller="WebApp" asp-action="Index" asp-route-page="1" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                                <span class="sr-only">Previous</span>
+                            </a>
+                        </li>
+                        @for (int i = 0; i <= Model.TotalPages - 1; i++)
+                        {
+                            int a = i + 1;
+                            <li class="page-item @(Model.CurrentPage == i  ? "active" : "")">
+                                <a class="page-link" asp-controller="WebApp" asp-action="Page" asp-route-page="@i">@a</a>
+                            </li>
+                        }
+                        <li class="page-item @(Model.CurrentPage == Model.TotalPages - 1 ? "disabled" : "")">
+                            <a class="page-link" asp-controller="WebApp" asp-action="Index" asp-route-page="@(Model.CurrentPage)" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                                <span class="sr-only">Next</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+
+            <div id="Cart" class="d-flex position-fixed bottom-10 end-0 mb-3 me-3 justify-content-center align-items-lg-center" style="border-radius: 50%; background-color: red; width: 55px; height: 55px;">
+                <div style="height: 40px">
+                    <span id="cartItemCount" style="color: black; font-size: 20px; font-weight: bold">0</span>
+                </div>
+                <a asp-controller="WebApp" asp-action="GetToCart">
+                    <img src="~/lib/shopping-cart.png" alt="search" style="width: 30px; height: 30px;" />
+                </a>
+            </div>
+
+
+            <!-- Container Chat-->
+            <div id="chatBox" class="d-flex position-fixed bottom-10 end-0 mb-3 me-3 justify-content-center align-items-lg-center" style="margin-right:20px; position: absolute; left: 90%;border-radius: 50%; background-color: white; width: 55px; height: 55px;" data-name="@ViewData["Name"]" data-isLoggedIn="@isLoggedIn">
+                <div id="chatFrame" class="d-flex position-fixed p-3 bg-light" style="width: 500px; bottom: 70px; right: 20px;">
+                    <div class="online-users" style="width: 200px; background-color: lightgray; padding: 10px; border-radius:10px;">
+                        <div style="font-weight: bold;">Online Users</div>
+                        <ul id="onlineUsersList" style="list-style-type: none; padding-left: 0;">
+                            <!-- Mỗi người dùng có thể là một phần tử của danh sách -->
+
+                        </ul>
+                    </div>
+                    <div id="chatContainer" class="chat-container" style="position: relative;" data-user-name="@userName">
+                        <div style="background-color: cornflowerblue">
+                            <div class="chat-header" id="chat-header-id">Chat With </div>
+                        </div>
+                        
+                        <div class="container-nguoichat">
+                            <div id="chatMessages" class="chat-messages">
+                                <!-- Tin nhắn sẽ được hiển thị ở đây -->
+                            </div>
+                        </div>
+                        <div class="input-buttonnhap" style="display: flex; position: absolute; bottom: 0; width: 100%; padding: 10px; background: white; height:63px;">
+                            <input id="messageInput" type="text" class="chat-input" placeholder="Type your message..." style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                            <button id="sendButton" value="SendMessage" @(isLoggedIn == "true" ? "" : "disabled") style="margin-left: 10px; padding: 10px 10px;">Send</button>
+                        </div>
+                        
+                    </div>
+
+                </div>
+                <a>
+                    <img src="~/lib/chat.png" alt="chat" style="width: 30px; height: 30px;" />
+                </a>
+            </div>
+
+            <div id="onlineUsers" style="position: fixed; top: 20px; right: 20px;">
+                <h3>Online Users</h3>
+                <ul id="userList"></ul>
+            </div>
+
+        </div>
+
+        <div class="footer-container" style="margin-top: 20px;">
+            <footer class="border-top footer text-muted py-3">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-6 text-center text-lg-start mb-2 mb-lg-0">
+                            &copy; 2024 - FishSale - <a href="/Home/Privacy" class="text-decoration-none">Privacy</a>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+
+
+
+        <script src="~/lib/jquery/dist/jquery.min.js"></script>
+        <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="~/js/site.js" asp-append-version="true"></script>
+        <script>
+            var cartItemCount = document.getElementById("header").getAttribute("data-isCount");
+            document.getElementById("cartItemCount").innerText = cartItemCount;
+            function addToCart() {
+                // Logic để thêm sản phẩm vào giỏ hàng
+                //cartItemCount++; // Tăng số lượng sản phẩm trong giỏ hàng
+                document.getElementById("cartItemCount").innerText = cartItemCount; // Cập nhật số lượng hiển thị trên nút giỏ hàng
+            }
+        </script>
+
+        <script>
+            function addToCart(productId, Quantity) {
+                debugger;
+                $.ajax({
+                    type: "POST",
+                    url: "/add-to-cart",
+                    data: { productId: productId, Quantity: Quantity },
+                    success: function (response) {
+                        debugger;
+                        // Cập nhật cartItemCount với số lượng sản phẩm trong giỏ hàng mới
+                        var cartItemCount = response;
+                        $("#cartItemCount").text(cartItemCount);
+                        toastr.success('Đã thêm sản phẩm vào giỏ hàng');
+                    },
+                    error: function () {
+                        debugger;
+                        toastr.error('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng');
+                    }
+                });
+            }
+        </script>
+
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                // ChatBox click event
+                document.getElementById('chatBox').addEventListener('click', function () {
+                    var chatFrame = document.getElementById('chatFrame');
+                    chatFrame.style.display = chatFrame.style.display === 'block' ? 'none' : 'block';
+                    chatFrame.style.animationName = chatFrame.style.animationName === 'slideIn' ? 'slideOut' : 'slideIn';
+                });
+
+                // Prevent chatFrame click from propagating
+                document.getElementById('chatFrame').addEventListener('click', function (event) {
+                    event.stopPropagation();
+                });
+
+                // Get cookie function
+                function getCookie(name) {
+                    const value = `; ${document.cookie}`;
+                    const parts = value.split(`; ${name}=`);
+                    if (parts.length === 2) return parts.pop().split(';').shift();
+                }
+
+                // Logout button event
+                var logoutButton = document.getElementById("logoutButton");
+                if (logoutButton) {
+                    logoutButton.addEventListener("click", function () {
+                        connection.invoke("LogoutUser").catch(function (err) {
+                            console.error(err.toString());
+                        });
+                    });
+                }
+
+                // Chat functionality
+                var chatContainer = document.getElementById("chatContainer");
+                var userNameSendMess = chatContainer.getAttribute("data-user-name") ?? getCookie("userName");
+                var chatBox = document.getElementById("chatBox");
+                if (chatBox) {
+                    var isLoggedIn = chatBox.getAttribute("data-isLoggedIn");
+                    if (isLoggedIn === "true") {
+                        var connection = new signalR.HubConnectionBuilder().withUrl("/chatHub").build();
+                        document.getElementById("sendButton").disabled = false;
+
+                        connection.on("ReceiveMessage", function (user, message) {
+                            var li = document.createElement("li");
+                            li.className = "chat-message";
+                            document.getElementById("chatMessages").appendChild(li);
+                            li.textContent = `${user}: ${message}`;
+                            var chatMessages = document.getElementById("chatMessages");
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                        });
+
+                        connection.on("ReceiveOnlineUsers", function (onlineUsers) {
+                            var onlineUsersList = document.getElementById("onlineUsersList");
+                            onlineUsersList.innerHTML = "";
+                            var currentUserName = userNameSendMess;
+                            var displayedUserNames = [];
+                            onlineUsers.forEach(function (user) {
+                                if (user.userName != currentUserName && !displayedUserNames.includes(user.userName)) {
+                                    var li = document.createElement("li");
+                                    li.innerHTML = `<button type="button" class="custom" data-username="${user.userName}" data-userid="${user.userId}" style="margin-top:10px; border-radius:10px;margin-left: 0;">${user.userName}</button>`;
+                                    onlineUsersList.appendChild(li);
+                                    displayedUserNames.push(user.userName);
+                                }
+                            });
+                            debugger;
+                            // Gán lại sự kiện click cho các user-link mới tạo
+                            assignUserLinkClickEvents();
+                        });
+
+                        connection.on("LoadMessages", function (messages) {
+                            debugger;
+                            var chatMessages = document.getElementById("chatMessages");
+                            var userNameSendMess = chatContainer.getAttribute("data-user-name");
+                            var userNameInCookie = getCookie("userName");
+                            chatMessages.innerHTML = ""; // Clear existing messages
+                            messages.forEach(function (message) {
+                                var li = document.createElement("li");
+                                li.className = "chat-message";
+                                li.textContent = `${message.userName}: ${message.content}`;
+                                chatMessages.appendChild(li);
+                                chatMessages.scrollTop = chatMessages.scrollHeight;
+                            });
+                        });
+
+                        connection.start().then(function () {
+                            document.getElementById("sendButton").disabled = false;
+                            var recipientUserId = chatBox.getAttribute("data-userid");
+                            connection.invoke("LoadMessageHistory", recipientUserId).catch(function (err) {
+                                console.error(err.toString());
+                            });
+                        }).catch(function (err) {
+                            console.error(err.toString());
+                        });
+
+                        document.getElementById("sendButton").addEventListener("click", function (event) {
+                            debugger;
+                            var recipientUserId = chatBox.getAttribute("data-userid");
+                            var message = document.getElementById("messageInput").value;
+                            var userName = chatBox.getAttribute("data-username");
+                            connection.invoke("SendMessageToUser", recipientUserId, message).catch(function (err) {
+                                console.error(err.toString());
+                            });
+                            var userNameSend = userNameSendMess;
+                            var chatMessages = document.getElementById("chatMessages");
+                            var containerNguoiChat = document.getElementsByClassName("container-nguoichat")[0];
+                            var li = document.createElement("li");
+                            li.className = "chat-message";
+                            li.textContent = `${userNameSend}: ${message}`;
+                            chatMessages.appendChild(li);
+                            containerNguoiChat.scrollTop = containerNguoiChat.scrollHeight;
+                            // Xóa nội dung tin nhắn sau khi gửi
+                            document.getElementById("messageInput").value = "";
+                            event.preventDefault();
+                        });
+                    }
+                }
+
+                // Change chat header when user-link is clicked
+                function assignUserLinkClickEvents() {
+                    debugger;
+                    const chatHeader = document.getElementById('chat-header-id');
+                    const changeUsernameLinks = document.querySelectorAll('.custom');
+                    changeUsernameLinks.forEach(function (link) {
+                        debugger;
+                        link.addEventListener('click', function (event) {
+                            event.preventDefault();
+                            debugger;
+                            const newUsername = this.getAttribute('data-username');
+                            const recipientUserId = this.getAttribute('data-userid');
+                            const chatHeader = document.getElementById('chat-header-id');
+                            const chatBox = document.getElementById('chatBox');
+                            if (chatHeader && chatBox) {
+                                chatHeader.textContent = "Chat With " + newUsername;
+                                chatBox.setAttribute('data-userid', recipientUserId);
+                                chatBox.setAttribute('data-username', newUsername);
+                                connection.invoke("LoadMessageHistory", recipientUserId).catch(function (err) {
+                                    console.error(err.toString());
+                                });
+                            }
+                        });
+                    });
+                }
+
+                // // Fetch userId when user-link is clicked
+                // function assignUserLinkClickEvents() {
+                //     document.querySelectorAll('user-link').forEach(link => {
+                //         link.addEventListener('click', function (event) {
+                //             event.preventDefault();
+                //             var chatBox = document.getElementById("chatBox");
+                //             if (chatBox) {
+                //                 const userName = this.getAttribute('data-username');
+                //                 fetch(`/get-user-id?userName=${userName}`)
+                //                     .then(response => response.text())
+                //                     .then(userId => {
+                //                         this.setAttribute('data-userid', userId);
+                //                         chatBox.setAttribute('data-userid', userId);
+                //                     })
+                //                     .catch(error => {
+                //                         console.error('Error:', error);
+                //                     });
+                //             }
+                //         });
+                //     });
+                // }
+
+                // // Gán sự kiện click cho các user-link ban đầu
+                // assignUserLinkClickEvents();
+            });
+        </script>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/3.1.18/signalr.min.js"></script>
+        <script>
+            $(document).ready(function () {
+                // Khởi tạo kết nối SignalR
+                var connection = new signalR.HubConnectionBuilder().withUrl("/commentHub").build();
+
+                // Nhận thông báo bình luận
+                connection.on("ReceiveComment", function (content) {
+                    toastr.warning(content);
+                    addNotification(content);
+                });
+
+                connection.start().catch(function (err) {
+                    return console.error(err.toString());
+                });
+
+                function addNotification(content) {
+                    var notificationDropdown = document.querySelector('.dropdown-menu');
+                    var notificationItem = document.createElement('a');
+                    notificationItem.className = 'dropdown-item';
+                    notificationItem.href = '#';
+                    notificationItem.textContent =  content;
+                    // Thêm vào đầu danh sách thông báo
+                    notificationDropdown.insertBefore(notificationItem, notificationDropdown.firstChild);
+                }
+            });
+
+            function showNotifications() {
+                var dropdownMenu = document.querySelector('.dropdown-menu');
+                dropdownMenu.classList.toggle('show');
+            }
+        </script>
+
+        @* <script>
+        document.addEventListener("DOMContentLoaded", function () {
+        var chatBox = document.getElementById("chatBox");
+        if (chatBox) {
+        var isLoggedIn = chatBox.getAttribute("data-isLoggedIn");
+        if (isLoggedIn === "true") {
+        var connection = new signalR.HubConnectionBuilder().withUrl("/chatHub").build();
+        document.getElementById("sendButton").disabled = true;
+        connection.on("Receive", function (user, message) {
+        var li = document.createElement("li");
+        document.getElementById("chatMessages").appendChild(li);
+        li.textContent = `${user}: ${message}`;
+        });
+
+        connection.start().then(function () {
+        document.getElementById("sendButton").disabled = false;
+        }).catch(function (err) {
+        console.error(err.toString());
+        });
+
+        document.getElementById("sendButton").addEventListener("click", function (event) {
+        var message = document.getElementById("messageInput").value;
+        var userName = chatBox.getAttribute("data-name");
+        connection.invoke("SendMessage", userName, message).catch(function (err) {
+        console.error(err.toString());
+        });
+        event.preventDefault();
+        });
+        }
+        }
+        });
+        </script> *@
+
+        @*    <script>
+        // Trong phần SignalR connection, thêm hàm này để xử lý thông điệp về người dùng mới đăng nhập
+        connection.on("UserLoggedIn", function (userName) {
+        // Thêm người dùng mới vào danh sách người dùng đang truy cập
+        addUserToList(userName);
+        });
+
+        // Hàm để thêm người dùng vào danh sách người dùng đang truy cập
+        function addUserToList(userName) {
+        var userList = document.getElementById("userList");
+        var listItem = document.createElement("li");
+        listItem.textContent = userName;
+        userList.appendChild(listItem);
+        }
+
+        </script> *@
+
+
+        <!-- Script Chat-->
+
+
+        <script>
+            function showUserInfo() {
+                $('#userInfoModal').modal('show'); // Hiển thị modal khi nhấp vào avatar
+            }
+        </script>
+
+        <script>
+            function hideUserInfo() {
+                $('#userInfoModal').modal('hide'); // Ẩn modal khi nhấp vào nút đóng
+            }
+        </script>
+        <script>
+            document.getElementById('avatar').addEventListener('change', function (event) {
+                var file = event.target.files[0]; // Lấy file được chọn
+                var reader = new FileReader(); // Tạo đối tượng đọc file
+
+                reader.onload = function (e) {
+                    var img = document.getElementById('avatar-preview'); // Lấy thẻ ảnh preview
+                    img.src = e.target.result; // Thiết lập src của ảnh preview thành dữ liệu URL của file đã chọn
+                    img.style.display = 'block'; // Hiển thị ảnh preview
+                    var img1 = document.getElementById('ava-macdinh');
+                    img1.src = e.target.result;
+                    img1.style.display = 'block';
+                };
+
+                if (file) {
+                    reader.readAsDataURL(file); // Đọc file dưới dạng dữ liệu URL
+                }
+            });
+        </script>
+        <script>
+            // Đợi cho tài liệu được tải xong
+            $(document).ready(function () {
+                // Gắn sự kiện click cho nút save
+                $('#saveButton').click(function () {
+                    // Gọi hàm hiển thị thông báo thành công của Toastr
+                    toastr.success('Dữ liệu đã được lưu thành công!', 'Thành công');
+                });
+            });
+        </script>
+
+        <script>
+            // Đợi cho tài liệu được tải xong
+            $(document).ready(function () {
+                // Gắn sự kiện submit cho form
+                $('#searchForm').submit(function (event) {
+                    // Ngăn chặn hành động mặc định của form
+                    event.preventDefault();
+
+                    // Lấy giá trị của input
+                    var searchValue = $('#searchInput').val().trim();
+
+                    // Kiểm tra xem input có giá trị không
+                    if (!searchValue) {
+                        // Nếu không có giá trị, hiển thị thông báo Toastr
+                        toastr.error('Vui lòng nhập sản phẩm cần tìm kiếm', 'Lỗi');
+                    } else {
+                        // Nếu có giá trị, thực hiện hành động mặc định của form (ví dụ: gửi dữ liệu)
+                        this.submit();
+                    }
+                });
+            });
+        </script>
+
+
+</body>
+</html>
+
+

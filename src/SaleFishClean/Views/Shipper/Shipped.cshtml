@@ -1,0 +1,154 @@
+﻿@model IEnumerable<SaleFishClean.Application.Common.Models.Dtos.Response.ShipperOrderResponse>
+@{
+    Layout = null;
+    var httpContext = ViewContext.HttpContext;
+    string isLoggedIn = httpContext.Session.GetString("IsLoggedIn");
+    string userName = httpContext.Session.GetString("NameShipper");
+}
+<header>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/Trangchu.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/FishSale.styles.css" asp-append-version="true" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet">
+    <style>
+        .Container {
+            display: flex;
+        }
+
+        .Container-nav {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .Container-Center {
+            margin-left: 400px;
+        }
+
+        .OrderSection {
+            margin-bottom: 20px;
+        }
+
+        .Container-nav a {
+            text-decoration: none; /* Xóa gạch chân */
+        }
+    </style>
+</header>
+<body>
+    <header>
+        <div class="Container-dangnhapdangki">
+            @if (isLoggedIn == "true")
+            {
+                <div class="d-flex flex-row" style="float: right;">
+                    <div class="containerdangnhap mb-2">
+                        <div>
+                            <a>Xin chào @userName!</a>
+                        </div>
+                    </div>
+                    <div class="containerdangkí">
+                        <a asp-controller="WebApp" class="btn btn-outline-dark" asp-action="Logout">Đăng Xuất</a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                TempData["Name"] = null;
+                <div class="d-flex flex-row" style="float: right;">
+                    <div class="containerdangnhap mb-2" style="margin-right: 10px;">
+                        <a asp-controller="WebApp" class="btn btn-outline-dark" asp-action="GoToLogin">Đăng nhập</a>
+                    </div>
+                    <div class="containerdangkí">
+                        <a asp-controller="WebApp" class="btn btn-outline-dark" asp-action="GoToRegister">Đăng kí</a>
+                    </div>
+                </div>
+            }
+        </div>
+    </header>
+    <div class="Container">
+        <div class="Container-nav">
+            <div>
+                <a asp-action="GetOrderForShipper" asp-controller="Shipper">Tất cả đơn hàng</a>
+            </div>
+            <div>
+                <a asp-action="GetOrderShippingForShipper" asp-controller="Shipper">Đơn hàng đang giao</a>
+            </div>
+            <div>
+                <a asp-action="GetOrderShippedForShipper" asp-controller="Shipper">Đơn hàng Đã giao</a>
+            </div>
+            <div>
+                <a asp-action="GetOrderDestroyForShipper" asp-controller="Shipper">Đơn hàng Đã hủy</a>
+            </div>
+        </div>
+        <div class="Container-Center">
+            @if (!Model.Any())
+            {
+                <p>Không có đơn hàng nào.</p>
+            }
+            else
+            {
+            @foreach (var order in Model)
+            {
+                <div class="OrderSection">
+                    <h2>Thông tin đơn hàng</h2>
+                    <form asp-action="SubmitOrder">
+                        <div class="form-group">
+                            <label>Mã đơn hàng</label>
+                            <input value="@order.OrderId" class="form-control" readonly />
+                        </div>
+                        <div class="form-group">
+                            <label>Mã người dùng</label>
+                            <input value="@order.UserInfo.UserId" class="form-control" readonly />
+                        </div>
+                        <div class="form-group">
+                            <label>Họ</label>
+                                <input value="@order.UserInfo.FirstName" class="form-control" readonly />
+                        </div>
+                        <div class="form-group">
+                            <label>Tên</label>
+                                <input value="@order.UserInfo.LastName" class="form-control" readonly />
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                                <input value="@order.UserInfo.Email" class="form-control" readonly />
+                        </div>
+                        <div class="form-group">
+                            <label>Số điện thoại</label>
+                                <input value="@order.UserInfo.PhoneNumber" class="form-control" readonly />
+                        </div>
+                        <div class="form-group">
+                            <label>Địa chỉ</label>
+                                <input value="@order.UserInfo.Address" class="form-control" readonly />
+                        </div>
+                        <h3>Danh sách sản phẩm</h3>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Tên sản phẩm</th>
+                                    <th>Số lượng</th>
+                                    <th>Giá</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var product in order.ProductsForShipper)
+                                {
+                                    <tr>
+                                        <td>@product.ProductName</td>
+                                        <td>@product.Quantity</td>
+                                        <td>@product.Price</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+
+                        <div class="form-group">
+                            <label for="TotalAmount">Tổng tiền</label>
+                            <input id="TotalAmount" value="@order.TotalAmount" class="form-control" readonly />
+                        </div>
+                    </form>
+                </div>
+                }
+            }
+        </div>
+    </div>
+</body>

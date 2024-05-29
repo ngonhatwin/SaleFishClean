@@ -1,0 +1,69 @@
+﻿@model SaleFishClean.Application.Common.Models.Dtos.Request.AuthenRequest
+
+@{
+    Layout = null;
+}
+@{
+    ViewData["Title"] = "Đăng nhập";
+}
+<header>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    @* <link rel="stylesheet" href="~/css/Trangchu.css" asp-append-version="true" /> *@
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+
+    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <div class="container-fluid">
+            <a class="navbar-brand" asp-area="" asp-controller="WebApp" asp-action="Index">Cửa hàng hải sản đông lạnh</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                <ul class="navbar-nav flex-grow-1">
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" asp-area="" asp-controller="WebApp" asp-action="Index">Sản phẩm</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" asp-area="" asp-controller="WebApp" asp-action="GoToCart">Giỏ hàng</a>
+                    </li>
+                </ul>
+
+            </div>
+            <div class="container-dangnhapdangki">
+                <div class="d-flex">
+                    <div class="containerdangnhap" style="margin-right:20px;">
+                        <a asp-controller="WebApp" class="btn btn-outline-dark" asp-action="GoToLogin">Đăng nhập</a>
+                    </div>
+                    <div class="containerdangkí">
+                        <a asp-controller="WebApp" class="btn btn-outline-dark" asp-action="GoToRegister">Đăng kí</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+<div class="login-box">
+    <h2>Login</h2>
+
+    <form autocomplete="off">
+        <div class="user-box">
+            <input type="text" name="UserName" required="">
+            <label>Username</label>
+        </div>
+        <div class="user-box">
+            <input name="Password" required="" type="password">
+            <label>Password</label>
+        </div>
+        <button type="submit" class="btn-dangnhap" asp-action="Login" asp-controller="Token">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            Submit
+        </button>
+    </form>
+</div>
+
+
+
+

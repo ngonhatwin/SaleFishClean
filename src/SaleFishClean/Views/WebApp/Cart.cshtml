@@ -1,0 +1,142 @@
+﻿@model IEnumerable<SaleFishClean.Application.Common.Models.Dtos.Response.CartResponse>
+@{
+    Layout = null;
+    ViewData["Title"] = "Giỏ hàng";
+}
+
+<header>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/Trangchu.css" asp-append-version="true" />
+</header>
+<div class="container">
+    <div class="row" style="flex-direction: column">
+        <div class="col-md-8">
+            <h2>Giỏ hàng của bạn</h2>
+            @if (Model == null || !Model.Any()) // Kiểm tra xem CartResponse có phần tử nào không
+            {
+                <p>Giỏ hàng của bạn không có sản phẩm nào.</p>
+            }
+            else
+            {
+                <table class="table" id="table-card">
+                    <div style="float:right;">
+                        <form method="post">
+                            <button type="submit" class="btn btn-danger btn-remove" asp-action="DeleteAllCartDetail" asp-controller="WebApp">Bỏ chọn tất cả</button>
+                        </form>              
+                    </div>
+                    <thead>
+                        <tr>
+                            <th scope="col">Sản phẩm</th>
+                            <th scope="col">Số lượng</th>
+                            <th scope="col">Đơn giá</th>
+                            <th scope="col">Thành tiền</th>
+                            <th scope="col">Thao tác</th> <!-- Thêm cột cho nút bỏ chọn -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <div>
+                                <td>@item.NameProduct</td>
+                                <td>
+                                    <input type="number" class="form-control quantity-input" value="@item.Quantity" min="1">
+                                </td>
+                                <td>@item.Price</td>
+                                <td class="product-total">$@(item.Quantity * Convert.ToDecimal(item.Price))</td> <!-- Tính toán thành tiền -->
+                                <td>
+                                    <form method="post">
+                                        <input type="hidden" name="userid" value="@item.UserId" />
+                                        <input type="hidden" name="productid" value="@item.Id" />
+                                        <button type="submit" class="btn btn-danger btn-remove" asp-action="DeleteCartDetail" asp-controller="WebApp">Bỏ chọn</button>
+                                    </form>
+                                </td>
+                                
+                                </div>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+        <div class="col-md-8" style="margin-top: 50px">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Tổng tiền</h5>
+                    @if (Model != null && Model.Any()) // Kiểm tra xem CartResponse có phần tử nào không
+                    {
+                        <p id="total-price" class="card-text">Tổng cộng: $@(Model.Sum(x => x.Quantity * Convert.ToDecimal(x.Price)))</p> <!-- Tính tổng tiền -->
+                    <a  asp-action="AddInfo" asp-controller="WebApp" class="btn btn-primary btn-block">Thanh toán</a>
+                    }
+                    else
+                    {
+                        <p id="total-price" class="card-text">Giỏ hàng của bạn không có sản phẩm nào.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    //Bắt sự kiện khi trang đã tải xong
+    document.addEventListener("DOMContentLoaded", function () {
+        // Lấy tất cả các input số lượng trong bảng
+        var quantityInputs = document.querySelectorAll('.quantity-input');
+
+        // Duyệt qua từng input số lượng và thêm sự kiện cho mỗi input
+        quantityInputs.forEach(function (input) {
+            input.addEventListener('input', function () {
+                // Lấy giá trị số lượng và đơn giá của sản phẩm tương ứng
+                var quantity = parseInt(input.value);
+                var price = parseFloat(input.parentNode.nextElementSibling.innerText.replace('$', ''));
+
+                // Tính toán thành tiền
+                var totalPrice = quantity * price;
+
+                // Hiển thị giá trị mới của cột "Thành tiền"
+                input.parentNode.nextElementSibling.nextElementSibling.innerText = '$' + totalPrice.toFixed(2);
+
+                // Tính lại tổng tiền cho toàn bộ giỏ hàng và cập nhật giá trị của "Tổng tiền"
+                updateTotalPrice();
+            });
+        });
+
+        // Hàm để tính tổng tiền và cập nhật giá trị của "Tổng tiền"
+        function updateTotalPrice() {
+            var total = 0;
+            var totalPriceElements = document.querySelectorAll('.product-total');
+
+            totalPriceElements.forEach(function (element) {
+                total += parseFloat(element.innerText.replace('$', ''));
+            });
+
+            document.querySelector('#total-price').innerText = '$' + total.toFixed(2);
+        }
+    });
+</script>
+<script>
+    const quantityInputs = document.querySelectorAll('.quantity-input');
+
+    quantityInputs.forEach(input => {
+        input.addEventListener('input', function () {
+            let value = parseInt(this.value);
+            if (value < 1) {
+                this.value = 1;
+                alert("Vui lòng nhập một số lớn hơn hoặc bằng 1.");
+            }
+        });
+    });
+</script>
+<script>
+    window.addEventListener('beforeunload', function (event) {
+        // Kiểm tra xem giỏ hàng có trống không
+        var tableRows = document.querySelectorAll('#table-card tbody tr');
+        if (tableRows.length === 0 && event.altKey) {
+            // Nếu giỏ hàng trống và người dùng bấm "Alt + Left Arrow" bằng chuột, chuyển hướng trực tiếp đến trang chủ
+            event.preventDefault();
+            window.location.href = '@Url.Action("Index", "WebApp")';
+        }
+    });
+</script>
+

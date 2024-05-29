@@ -1,0 +1,190 @@
+﻿@using SaleFishClean.Application.Common.Models.Dtos.Response
+@model IEnumerable<SaleFishClean.Application.Common.Models.Dtos.Response.OrderTrackingViewModel>
+@using Microsoft.AspNetCore.Html;
+@using System.Text.Encodings.Web;
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Theo dõi lịch trình vận chuyển</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.3/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <style>
+        .container {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Theo dõi lịch trình vận chuyển</h2>
+        <ul class="nav nav-tabs" id="orderTabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="shipping-tab" data-toggle="tab" href="#shipping" role="tab" aria-controls="shipping" aria-selected="true">Đang vận chuyển</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="received-tab" data-toggle="tab" href="#received" role="tab" aria-controls="received" aria-selected="false">Đã nhận hàng</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="cancelled-tab" data-toggle="tab" href="#cancelled" role="tab" aria-controls="cancelled" aria-selected="false">Đã hủy hàng</a>
+            </li>
+        </ul>
+        <div class="tab-content" id="orderTabsContent">
+            <div class="tab-pane fade show active" id="shipping" role="tabpanel" aria-labelledby="shipping-tab">
+                @* Đang vận chuyển *@
+                @RenderOrderTable(Model.Where(order => order.Status == 2))
+            </div>
+            <div class="tab-pane fade" id="received" role="tabpanel" aria-labelledby="received-tab">
+                @* Đã nhận hàng *@
+                @RenderOrderTable(Model.Where(order => order.Status == 3))
+            </div>
+            <div class="tab-pane fade" id="cancelled" role="tabpanel" aria-labelledby="cancelled-tab">
+                @* Đã hủy hàng *@
+                @RenderOrderTable(Model.Where(order => order.Status == 4))
+            </div>
+        </div>
+    </div>
+    @* modal details *@
+    <div id="orderDetailsModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="orderDetailsModalLabel" style="margin-left: 20px;">Chi tiết đơn hàng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="order-info">
+                        <div class="form-group">
+                            <label for="orderId">Mã đơn hàng:</label>
+                            <input type="text" class="form-control" id="orderId" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="userName">Tên người mua:</label>
+                            <input type="text" class="form-control" id="userName" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="phoneNumber">Số điện thoại:</label>
+                            <input type="text" class="form-control" id="phoneNumber" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="address">Địa chỉ:</label>
+                            <input type="text" class="form-control" id="address" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email:</label>
+                            <input type="text" class="form-control" id="email" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="products">Sản phẩm:</label>
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Tên sản phẩm</th>
+                                        <th>Giá</th>
+                                        <th>Số lượng</th>
+                                        <th>Thành tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="products">
+                                    <!-- Nội dung sản phẩm sẽ được tải vào đây -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="form-group">
+                            <label for="totalCent">Tổng tiền:</label>
+                            <input type="text" class="form-control" id="totalAmountSub" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* ----------- *@
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('.btn-view-details').on('click', function (e) {
+                e.preventDefault();
+                var orderId = $(this).data('order-id');
+
+                // Gọi AJAX để tải dữ liệu chi tiết đơn hàng
+                $.ajax({
+                    url: '/Shipper/GetOrderDetails/' + orderId,
+                    type: 'GET',
+                    success: function (data) {
+                        // Hiển thị dữ liệu trong modal
+                        $('#orderId').val(data.orderId);
+                        $('#userName').val(data.userInfo.firstName + ' ' + data.userInfo.lastName);
+                        $('#phoneNumber').val(data.userInfo.phoneNumber);
+                        $('#address').val(data.userInfo.address);
+                        $('#email').val(data.userInfo.email);
+
+                        var totalAmount = 0;
+                        var productsHtml = '';
+ 
+                        data.productsForShipper.forEach(function (product) {
+                            debugger;
+                            var productTotal = product.price * product.quantity;
+                            totalAmount += productTotal;
+                            productsHtml += '<tr>';
+                            productsHtml += '<td>' + product.productName + '</td>';
+                            productsHtml += '<td>' + product.price + '</td>';
+                            productsHtml += '<td>' + product.quantity + '</td>';
+                            productsHtml += '<td>' + (product.price * product.quantity) + '</td>';
+                            productsHtml += '</tr>';
+                        });
+                        $('#products').html(productsHtml);
+                        $('#totalAmountSub').val(totalAmount);
+
+                        $('#orderDetailsModal').modal('show');
+                    },
+                    error: function () {
+                        alert('Không thể tải chi tiết đơn hàng. Vui lòng thử lại.');
+                    }
+                });
+            });
+        });
+    </script>
+
+
+    @functions {
+        public static IHtmlContent RenderOrderTable(IEnumerable<OrderTrackingViewModel> orders)
+        {
+            if (!orders.Any())
+            {
+                return new HtmlString("<p>Không có đơn hàng nào.</p>");
+            }
+
+            var table = new TagBuilder("table");
+            table.AddCssClass("table table-bordered");
+
+            var thead = new TagBuilder("thead");
+            thead.InnerHtml.AppendHtml("<tr><th>#</th><th>Tên người mua hàng</th><th>Tên người vận chuyển</th><th>Tổng tiền</th><th>Thao tác</th></tr>");
+            table.InnerHtml.AppendHtml(thead);
+
+            var tbody = new TagBuilder("tbody");
+
+            int index = 1;
+            foreach (var order in orders)
+            {
+                var tr = new TagBuilder("tr");
+                tr.InnerHtml.AppendHtml($"<td>{index++}</td>");
+                tr.InnerHtml.AppendHtml($"<td>{order.BuyerName}</td>");
+                tr.InnerHtml.AppendHtml($"<td>{order.ShipperName}</td>");
+                tr.InnerHtml.AppendHtml($"<td>{order.TotalAmount:C}</td>");
+                tr.InnerHtml.AppendHtml($"<td><a href='#' data-order-id='{order.OrderId}' class='btn btn-info btn-view-details'>Xem chi tiết</a></td>");
+                tbody.InnerHtml.AppendHtml(tr);
+            }
+
+            table.InnerHtml.AppendHtml(tbody);
+
+            var writer = new System.IO.StringWriter();
+            table.WriteTo(writer, HtmlEncoder.Default);
+            return new HtmlString(writer.ToString());
+        }
+    }
+
+</body>
+</html>

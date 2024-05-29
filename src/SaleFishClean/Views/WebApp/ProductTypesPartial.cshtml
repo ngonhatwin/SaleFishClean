@@ -1,0 +1,131 @@
+﻿@model SaleFishClean.Application.Common.Models.Dtos.Response.IndexViewModelResponse
+@{
+    string product = ViewData["product"] != null ? ViewData["product"].ToString() : "ok";
+}
+<header>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet">
+    <style>
+        #toast-container > .toast-success {
+            background-color: #28a745; /* Màu nền thành công của Bootstrap */
+            color: #ffffff; /* Màu chữ mặc định của Bootstrap */
+        }
+
+        #toast-container > .toast-error {
+            background-color: #dc3545; /* Màu nền lỗi của Bootstrap */
+            color: #ffffff; /* Màu chữ mặc định của Bootstrap */
+        }
+
+        #toast-container > .toast-info {
+            background-color: #17a2b8; /* Màu nền thông tin của Bootstrap */
+            color: #ffffff; /* Màu chữ mặc định của Bootstrap */
+        }
+
+        #toast-container > .toast-warning {
+            background-color: #ffc107; /* Màu nền cảnh báo của Bootstrap */
+            color: #212529; /* Màu chữ mặc định của Bootstrap */
+        }
+
+    </style>
+</header>
+<div class="container">
+    <form id="categoryForm" data-ispoduct="@product">
+        <div class="row" style="margin-top: 50px;">
+            <div class="col-6" id="danhmuc-type" style="margin-top: 70px">
+                <div class="form-group">
+                    <label for="categoryFilter"><strong>Danh mục</strong></label>
+                    <!-- Filter checkboxes -->
+                    @foreach (var category in Model.ProductsType)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="@category.ProductTypeName" id="@($"category_{category.ProductTypeName}")" name="type">
+                            <label class="form-check-label" for="@($"category_{category.ProductTypeName}")">
+                                @category.ProductTypeName
+                            </label>
+                        </div>
+                    }
+                </div>
+                <button type="submit" asp-action="SearchByType" asp-controller="WebApp" class="btn btn-primary">Lọc</button>
+            </div>
+            <div class="col-6" style="margin-top: 130px;">
+                <div class="form-group">
+                    <label for="sortBy"><strong>Sắp xếp</strong></label>
+                    <!-- Sorting checkboxes -->
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="A" id="sortByName" name="name">
+                        <label class="form-check-label" for="sortByName">
+                            A - Z
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="Z" id="sortByPriceDesc" name="name">
+                        <label class="form-check-label" for="sortByPriceDesc">
+                            Z - A
+                        </label>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="min" id="sortByPriceAsc" name="price">
+                        <label class="form-check-label" for="sortByPriceAsc">
+                            Giá thấp - cao
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="max" id="sortByPriceDesc" name="price">
+                        <label class="form-check-label" for="sortByPriceDesc">
+                            Giá cao - thấp
+                        </label>
+                    </div>
+                </div>
+                <button type="submit" asp-action="Sort" asp-controller="WebApp" class="btn btn-primary">Sắp xếp</button>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
+    <div class="toast-header">
+        <strong class="mr-auto">Thông báo</strong>
+        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="toast-body">
+        Không có dữ liệu phù hợp.
+    </div>
+</div>
+<script>
+    // Lấy tất cả các checkbox trong mỗi nhóm và thêm sự kiện 'change' cho chúng
+    document.querySelectorAll('input[type="checkbox"]').forEach(function (checkbox) {
+        checkbox.addEventListener('change', function () {
+            // Nếu checkbox đang được chọn
+            if (this.checked) {
+                // Lấy tên nhóm của checkbox hiện tại
+                var groupName = this.getAttribute('name');
+                // Lấy tất cả các checkbox khác trong cùng nhóm và loại bỏ dấu tích của chúng
+                document.querySelectorAll('input[name="' + groupName + '"]').forEach(function (otherCheckbox) {
+                    if (otherCheckbox !== checkbox) {
+                        otherCheckbox.checked = false;
+                    }
+                });
+            }
+        });
+    });
+
+</script>
+<script>
+    // Khi form được nộp
+    $('#categoryForm').submit(function (event) {
+        // Lấy giá trị của thuộc tính data-isproduct
+        var isProduct = $(this).data('isproduct');
+
+        // Kiểm tra nếu giá trị là "Notfound"
+        if (isProduct === "Notfound") {
+            // Hiển thị toast thông báo
+            $('.toast').toast('show');
+            // Ngăn chặn hành động mặc định của form
+            event.preventDefault();
+        }
+    });
+
+</script>

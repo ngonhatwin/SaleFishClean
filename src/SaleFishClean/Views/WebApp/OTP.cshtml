@@ -1,0 +1,36 @@
+﻿@{
+    ViewData["Title"] = "Xác thực OTP";
+    Layout = null;
+}
+<header>
+    <link rel="stylesheet" href="~/css/Otp.css" asp-append-version="true" />
+</header>
+
+<div class="login-box">
+    <h2>Nhâp mã xác thực OTP</h2>
+    <form>
+        <h3>Vui lòng nhập mã OTP đã được gửi đến email của bạn để xác thực.</h3>
+        <div class="user-box">
+            <input type="text" name="Otp" required="">
+            <label>Mã OTP:</label>
+        </div>
+        <button type="submit" class="btn-dangnhap" asp-action="IsVerify" asp-controller="User">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            Submit
+        </button>
+    </form>
+</div>
+@* <div class="container">
+    <h2>Xác thực OTP</h2>
+    <p>Vui lòng nhập mã OTP đã được gửi đến điện thoại của bạn để xác thực.</p>
+    <form method="post">
+        <div class="mb-3">
+            <label for="otpInput" class="form-label">Mã OTP:</label>
+            <input type="text" class="form-control" id="otpInput" name="Otp" required>
+        </div>
+        <button type="submit" class="btn btn-primary" asp-action="IsVerify" asp-controller="User">Xác thực</button>
+    </form>
+</div> *@
