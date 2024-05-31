@@ -25,8 +25,7 @@ namespace SaleFishClean.Web.Middleware
                 if (DateTime.TryParse(accessTokenExpired, out DateTime accessTokenExpiry))
                 {
                     if (accessTokenExpiry < DateTime.Now)
-                    {
-                        // Token đã hết hạn, xóa nó khỏi Session
+                    { 
                         context.Response.Cookies.Delete("accessToken");
                         context.Response.Cookies.Delete("TokenExpried");
                         context.Response.Cookies.Delete("userId");
